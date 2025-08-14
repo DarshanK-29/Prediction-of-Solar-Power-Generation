@@ -13,9 +13,22 @@ def generate_solar_power_data(n_samples=10000):
     np.random.seed(42)
     random.seed(42)
     
-    # Generate dates (2 years of data)
+    # Generate dates (2 years of data with better time distribution)
     start_date = datetime(2022, 1, 1)
-    dates = [start_date + timedelta(days=i) for i in range(n_samples)]
+    dates = []
+    
+    # Generate dates with more daylight hours
+    for i in range(n_samples):
+        # Random day within 2 years
+        random_days = np.random.randint(0, 730)
+        # Random hour (but bias towards daylight hours)
+        if np.random.random() < 0.7:  # 70% chance of daylight hours
+            hour = np.random.randint(6, 19)  # 6 AM to 6 PM
+        else:
+            hour = np.random.randint(0, 24)  # All hours
+        
+        date = start_date + timedelta(days=random_days, hours=hour)
+        dates.append(date)
     
     # Generate realistic weather data
     data = []
@@ -51,33 +64,42 @@ def generate_solar_power_data(n_samples=10000):
         # Visibility (affected by weather conditions)
         visibility = max(0, 10 + np.random.normal(0, 3))
         
-        # Solar power generation calculation
-        # Base generation capacity (kW)
-        base_capacity = 100
+        # Solar power generation calculation - MORE REALISTIC
+        # Base generation capacity (kW) - varies by season
+        base_capacity = 50 + 30 * season_factor  # 20-80 kW range
         
-        # Solar irradiance factor (peak at solar noon)
-        solar_factor = max(0, 1 - (solar_noon_distance / 6) ** 2)
+        # Solar irradiance factor (peak at solar noon, zero at night)
+        if 6 <= hour <= 18:  # Daylight hours only
+            solar_factor = max(0, 1 - (solar_noon_distance / 6) ** 2)
+        else:
+            solar_factor = 0  # No generation at night
         
-        # Cloud cover effect (linear reduction)
-        cloud_factor = 1 - (cloud_cover / 100) * 0.7
+        # Cloud cover effect (non-linear reduction)
+        cloud_factor = 1 - (cloud_cover / 100) ** 1.5 * 0.8
         
         # Temperature effect (solar panels are less efficient at high temps)
-        temp_factor = 1 - 0.005 * max(0, temp - 25)
+        temp_factor = 1 - 0.004 * max(0, temp - 25)
         
         # Humidity effect (slight reduction)
-        humidity_factor = 1 - 0.001 * humidity
+        humidity_factor = 1 - 0.0005 * humidity
         
-        # Calculate power generation
-        power_generated = (base_capacity * 
-                          solar_factor * 
-                          cloud_factor * 
-                          temp_factor * 
-                          humidity_factor * 
-                          season_factor)
+        # Wind effect (can cool panels but also cause dust)
+        wind_factor = 1 - 0.01 * max(0, wind_speed - 5)
         
-        # Add some realistic noise
-        power_generated += np.random.normal(0, power_generated * 0.1)
-        power_generated = max(0, power_generated)
+        # Calculate power generation with more realistic constraints
+        if solar_factor > 0:  # Only generate during daylight
+            power_generated = (base_capacity * 
+                              solar_factor * 
+                              cloud_factor * 
+                              temp_factor * 
+                              humidity_factor * 
+                              wind_factor)
+            
+            # Add realistic noise and ensure non-negative
+            power_generated += np.random.normal(0, power_generated * 0.15)
+            power_generated = max(0, power_generated)
+        else:
+            power_generated = 0
         
         data.append({
             'date': date,
@@ -106,3 +128,11 @@ if __name__ == "__main__":
     print(f"Target variable: power_generated")
     print(f"Data range: {df['date'].min()} to {df['date'].max()}")
     print(f"Power generation range: {df['power_generated'].min():.2f} to {df['power_generated'].max():.2f} kW")
+    print(f"Average power generation: {df['power_generated'].mean():.2f} kW")
+    print(f"Non-zero power samples: {(df['power_generated'] > 0).sum()} out of {len(df)}")
+    
+    # Additional statistics
+    daylight_data = df[df['power_generated'] > 0]
+    if len(daylight_data) > 0:
+        print(f"Daylight average power: {daylight_data['power_generated'].mean():.2f} kW")
+        print(f"Daylight max power: {daylight_data['power_generated'].max():.2f} kW")

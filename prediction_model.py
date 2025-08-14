@@ -94,8 +94,26 @@ class SolarPowerPredictor:
             else:
                 prediction = self.model.predict(features)[0]
             
-            # Ensure prediction is non-negative
-            prediction = max(0, prediction)
+            # Apply realistic constraints based on time and conditions
+            solar_noon_distance = weather_data.get('solar_noon_distance', 0)
+            cloud_cover = weather_data.get('cloud_cover', 50)
+            
+            # Calculate the hour from solar noon distance
+            # solar_noon_distance = abs(hour - 12), so hour = 12 ± solar_noon_distance
+            # We'll assume it's daytime if solar_noon_distance <= 6 (6 AM to 6 PM)
+            if solar_noon_distance > 6:
+                prediction = 0  # No solar generation at night
+            
+            # Apply cloud cover effect
+            if cloud_cover > 90:
+                prediction *= 0.1  # Very cloudy - minimal generation
+            elif cloud_cover > 70:
+                prediction *= 0.3  # Cloudy - reduced generation
+            elif cloud_cover > 50:
+                prediction *= 0.6  # Partly cloudy - moderate reduction
+            
+            # Ensure prediction is non-negative and realistic
+            prediction = max(0, min(100, prediction))  # Cap at 100 kW
             
             # Calculate confidence based on weather conditions
             confidence = self._calculate_confidence(weather_data)
