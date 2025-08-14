@@ -23,25 +23,21 @@ class WeatherAPI:
         
         self.base_url = "http://api.openweathermap.org/data/2.5"
         
-    def get_weather_data(self, city_name, country_code=None):
+    def get_weather_data(self, city_name):
         """
         Fetch current weather data for a given city.
         
         Args:
             city_name (str): Name of the city
-            country_code (str): Country code (optional, e.g., 'US', 'IN')
             
         Returns:
             dict: Weather data with processed features for solar power prediction
         """
         try:
-            # Build location string
-            location = f"{city_name},{country_code}" if country_code else city_name
-            
             # Fetch current weather
             current_url = f"{self.base_url}/weather"
             params = {
-                'q': location,
+                'q': city_name,
                 'appid': self.api_key,
                 'units': 'metric'  # Use metric units
             }
@@ -144,26 +140,22 @@ class WeatherAPI:
             print(f"Error processing weather data: {e}")
             return None
     
-    def get_forecast_data(self, city_name, country_code=None, days=5):
+    def get_forecast_data(self, city_name, days=5):
         """
         Fetch weather forecast data for a given city.
         
         Args:
             city_name (str): Name of the city
-            country_code (str): Country code (optional)
             days (int): Number of days for forecast (max 5 for free API)
             
         Returns:
             list: List of forecast data points
         """
         try:
-            # Build location string
-            location = f"{city_name},{country_code}" if country_code else city_name
-            
             # Fetch forecast
             forecast_url = f"{self.base_url}/forecast"
             params = {
-                'q': location,
+                'q': city_name,
                 'appid': self.api_key,
                 'units': 'metric',
                 'cnt': days * 8  # 8 data points per day (3-hour intervals)

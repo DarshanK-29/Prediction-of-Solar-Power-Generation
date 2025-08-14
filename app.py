@@ -74,11 +74,11 @@ def load_predictor():
         return None
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
-def get_weather_data(city_name, country_code=None):
+def get_weather_data(city_name):
     """Get weather data for a city (cached for 5 minutes)."""
     try:
         weather_api = WeatherAPI()
-        return weather_api.get_weather_data(city_name, country_code)
+        return weather_api.get_weather_data(city_name)
     except Exception as e:
         st.error(f"Error fetching weather data: {e}")
         return None
@@ -182,45 +182,47 @@ def main():
     # Header
     st.markdown('<h1 class="main-header">☀️ Solar Power Generation Predictor</h1>', unsafe_allow_html=True)
     
+    # Check if API key is configured
+    api_key = os.getenv('OPENWEATHER_API_KEY')
+    if not api_key:
+        st.error("❌ OpenWeatherMap API key not found! Please add your API key to the .env file.")
+        st.info("""
+        **To set up your API key:**
+        1. Get your free API key from [OpenWeatherMap API](https://openweathermap.org/api)
+        2. Copy `.env.example` to `.env`
+        3. Add your API key: `OPENWEATHER_API_KEY=your_api_key_here`
+        4. Restart the application
+        """)
+        st.stop()
+    
     # Sidebar
     st.sidebar.title("⚙️ Configuration")
     
-    # API Key input
-    api_key = st.sidebar.text_input(
-        "OpenWeatherMap API Key",
-        type="password",
-        help="Enter your OpenWeatherMap API key. Get one for free at https://openweathermap.org/api"
+    # City input (simplified)
+    city_name = st.sidebar.text_input(
+        "🌍 City Name", 
+        value="London", 
+        help="Enter the city name (e.g., London, New York, Tokyo)"
     )
-    
-    if api_key:
-        os.environ['OPENWEATHER_API_KEY'] = api_key
-    
-    # City input
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        city_name = st.text_input("City Name", value="London", help="Enter the city name")
-    
-    with col2:
-        country_code = st.text_input("Country Code", value="", help="Optional: Country code (e.g., US, IN)")
     
     # Load model
     predictor = load_predictor()
     
     if predictor is None:
-        st.error("❌ Model not found! Please train the model first using `python model_trainer.py`")
+        st.error("❌ Model not found! Please train the model first using `python simple_trainer.py`")
         st.stop()
     
     # Main content
     if st.button("🔍 Get Prediction", type="primary"):
-        if not api_key:
-            st.error("❌ Please enter your OpenWeatherMap API key in the sidebar")
+        if not city_name.strip():
+            st.error("❌ Please enter a city name")
             st.stop()
         
         with st.spinner("🌤️ Fetching weather data..."):
-            weather_data = get_weather_data(city_name, country_code)
+            weather_data = get_weather_data(city_name)
         
         if weather_data is None:
-            st.error("❌ Could not fetch weather data. Please check your API key and city name.")
+            st.error("❌ Could not fetch weather data. Please check the city name and try again.")
             st.stop()
         
         with st.spinner("🤖 Making prediction..."):
@@ -363,10 +365,9 @@ def main():
     - Confidence scoring
     
     **How it works:**
-    1. Enter your OpenWeatherMap API key
-    2. Input a city name
-    3. Click "Get Prediction"
-    4. View results and visualizations
+    1. Enter a city name
+    2. Click "Get Prediction"
+    3. View results and visualizations
     """)
     
     # Footer

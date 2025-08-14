@@ -74,15 +74,11 @@ The application will open in your browser at `http://localhost:8501`
 
 ## 🎯 Using the Application
 
-### 1. Enter API Key
-- In the sidebar, enter your OpenWeatherMap API key
-- The key is required to fetch real-time weather data
+### 1. Enter City Name
+- In the sidebar, simply enter a city name (e.g., "London", "New York", "Tokyo")
+- The API key is automatically loaded from the environment file
 
-### 2. Select Location
-- Enter a city name (e.g., "London", "New York", "Tokyo")
-- Optionally add a country code (e.g., "US", "IN", "JP")
-
-### 3. Get Prediction
+### 2. Get Prediction
 - Click the "Get Prediction" button
 - The system will:
   - Fetch current weather data for the city
@@ -90,7 +86,7 @@ The application will open in your browser at `http://localhost:8501`
   - Make a solar power generation prediction
   - Display results with visualizations
 
-### 4. Interpret Results
+### 3. Interpret Results
 - **Power Generation**: Predicted solar output in kW
 - **Confidence**: How reliable the prediction is (0-1)
 - **Weather Impact**: How current conditions affect generation
@@ -125,11 +121,11 @@ The application will open in your browser at `http://localhost:8501`
 1. **"Model file not found"**
    - Solution: Run `python simple_trainer.py` first
 
-2. **"API key required"**
-   - Solution: Get your OpenWeatherMap API key and enter it in the sidebar
+2. **"API key not found"**
+   - Solution: Add your OpenWeatherMap API key to the `.env` file
 
 3. **"City not found"**
-   - Solution: Check city name spelling and try adding country code
+   - Solution: Check city name spelling and try a different city
 
 4. **"Dependencies not found"**
    - Solution: Run `pip install -r requirements.txt`

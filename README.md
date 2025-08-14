@@ -165,10 +165,9 @@ The trained model typically achieves:
 ## 🔍 Usage Guide
 
 ### Making Predictions
-1. **Enter API Key**: Add your OpenWeatherMap API key
-2. **Select City**: Enter city name and optional country code
-3. **Get Prediction**: Click "Get Prediction" button
-4. **View Results**: Analyze predictions and visualizations
+1. **Enter City Name**: Simply enter the city name (e.g., "London", "New York", "Tokyo")
+2. **Get Prediction**: Click "Get Prediction" button
+3. **View Results**: Analyze predictions and visualizations
 
 ### Interpreting Results
 - **Power Generation**: Expected solar output in kW
